@@ -143,7 +143,11 @@ Add to your Claude configuration:
   "mcpServers": {
     "devonthink": {
       "command": "npx",
-      "args": ["-y", "mcp-server-devonthink"]
+      "args": ["-y", "github:TomBener/devonthink-zotero-mcp"],
+        "env": {
+          "ZOTERO_BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
+         // "ZOTERO_BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
+        }
     }
   }
 }
