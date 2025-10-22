@@ -5,10 +5,7 @@ import { executeJxa } from "../applescript/execute.js";
 import { escapeStringForJXA, isJXASafeString } from "../utils/escapeString.js";
 import { getRecordLookupHelpers, getDatabaseHelper } from "../utils/jxaHelpers.js";
 import { lookupZoteroMetadataByPath } from "../utils/zoteroMetadata.js";
-import type {
-	ZoteroMatchType,
-	ZoteroMetadataDescriptor,
-} from "../utils/zoteroMetadata.js";
+import type { ZoteroMatchType, ZoteroMetadataDescriptor } from "../utils/zoteroMetadata.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = z.infer<typeof ToolInputSchema>;
@@ -16,10 +13,7 @@ type ToolInput = z.infer<typeof ToolInputSchema>;
 const GetZoteroMetadataSchema = z
 	.object({
 		uuid: z.string().optional().describe("UUID of the DEVONthink record"),
-		id: z
-			.number()
-			.optional()
-			.describe("DEVONthink record ID (requires databaseName)"),
+		id: z.number().optional().describe("DEVONthink record ID (requires databaseName)"),
 		databaseName: z
 			.string()
 			.optional()
@@ -141,9 +135,7 @@ const buildRecordLookupScript = (input: {
 	parts.push(`    let resolvedDatabase = null;`);
 
 	if (input.uuid) {
-		parts.push(
-			`    lookupOptions["uuid"] = "${escapeStringForJXA(input.uuid)}";`,
-		);
+		parts.push(`    lookupOptions["uuid"] = "${escapeStringForJXA(input.uuid)}";`);
 	}
 
 	if (input.id !== undefined) {
@@ -151,9 +143,7 @@ const buildRecordLookupScript = (input: {
 	}
 
 	if (input.recordPath) {
-		parts.push(
-			`    lookupOptions["path"] = "${escapeStringForJXA(input.recordPath)}";`,
-		);
+		parts.push(`    lookupOptions["path"] = "${escapeStringForJXA(input.recordPath)}";`);
 	}
 
 	if (input.databaseName) {
@@ -175,8 +165,8 @@ const buildRecordLookupScript = (input: {
 	parts.push(`      const response = {};`);
 	parts.push(`      response["success"] = false;`);
 	parts.push(
-			`      const lookupError = lookupResult && lookupResult.error ? lookupResult.error : "Record not found";`,
-		);
+		`      const lookupError = lookupResult && lookupResult.error ? lookupResult.error : "Record not found";`,
+	);
 	parts.push(`      response["error"] = lookupError;`);
 	parts.push(`      return JSON.stringify(response);`);
 	parts.push(`    }`);
@@ -192,17 +182,21 @@ const buildRecordLookupScript = (input: {
 	parts.push(`    const response = {};`);
 	parts.push(`    response["success"] = true;`);
 	parts.push(`    response["finderPath"] = finderPath;`);
-	parts.push(
-			`    response["lookupMethod"] = lookupResult.method ? lookupResult.method : null;`,
-		);
+	parts.push(`    response["lookupMethod"] = lookupResult.method ? lookupResult.method : null;`);
 
 	parts.push(`    const recordInfo = {};`);
-	parts.push(`    try { recordInfo["uuid"] = record.uuid(); } catch (e) { recordInfo["uuid"] = null; }`);
-	parts.push(`    try { recordInfo["id"] = record.id(); } catch (e) { recordInfo["id"] = null; }`);
-	parts.push(`    try { recordInfo["name"] = record.name(); } catch (e) { recordInfo["name"] = null; }`);
 	parts.push(
-			`    try { recordInfo["location"] = record.location(); } catch (e) { recordInfo["location"] = null; }`,
-		);
+		`    try { recordInfo["uuid"] = record.uuid(); } catch (e) { recordInfo["uuid"] = null; }`,
+	);
+	parts.push(
+		`    try { recordInfo["id"] = record.id(); } catch (e) { recordInfo["id"] = null; }`,
+	);
+	parts.push(
+		`    try { recordInfo["name"] = record.name(); } catch (e) { recordInfo["name"] = null; }`,
+	);
+	parts.push(
+		`    try { recordInfo["location"] = record.location(); } catch (e) { recordInfo["location"] = null; }`,
+	);
 	parts.push(`    recordInfo["path"] = finderPath;`);
 	parts.push(`    try {`);
 	parts.push(`      const db = record.database();`);
@@ -234,9 +228,7 @@ const buildRecordLookupScript = (input: {
 	return parts.join("\n");
 };
 
-const getRecordFinderPath = async (
-	input: GetZoteroMetadataInput,
-): Promise<RecordLookupResult> => {
+const getRecordFinderPath = async (input: GetZoteroMetadataInput): Promise<RecordLookupResult> => {
 	try {
 		const script = buildRecordLookupScript(input);
 		return await executeJxa<RecordLookupResult>(script);
@@ -251,15 +243,7 @@ const getRecordFinderPath = async (
 const getZoteroMetadata = async (
 	input: GetZoteroMetadataInput,
 ): Promise<ZoteroMetadataToolSuccess | ZoteroMetadataToolFailure> => {
-	const {
-		uuid,
-		id,
-		databaseName,
-		recordPath,
-		finderPath,
-		zoteroJsonPath,
-		zoteroBibPath,
-	} = input;
+	const { uuid, id, databaseName, recordPath, finderPath, zoteroJsonPath, zoteroBibPath } = input;
 
 	const metadataJsonPath = zoteroJsonPath ?? process.env.ZOTERO_BIBLIOGRAPHY_JSON ?? null;
 	const metadataBibPath = zoteroBibPath ?? process.env.ZOTERO_BIBLIOGRAPHY_BIB ?? null;

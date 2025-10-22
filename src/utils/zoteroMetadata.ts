@@ -242,10 +242,7 @@ const collectJsonAttachmentPaths = (item: Record<string, unknown>): string[] => 
 	return Array.from(paths);
 };
 
-const getFirstStringFromKeys = (
-	source: Record<string, unknown>,
-	keys: string[],
-): string | null => {
+const getFirstStringFromKeys = (source: Record<string, unknown>, keys: string[]): string | null => {
 	for (const key of keys) {
 		const candidate = source[key];
 		if (typeof candidate === "string" && candidate.trim()) {
@@ -277,12 +274,9 @@ const findMatchingTopLevelField = (
 };
 
 const buildJsonDescriptor = (item: Record<string, unknown>): ZoteroMetadataDescriptor => {
-	const citationKey =
-		getFirstStringFromKeys(item, ["citationKey", "citationkey", "id"]) ?? null;
-	const zoteroId =
-		getFirstStringFromKeys(item, ["zoteroId", "zotero_id", "key", "id"]) ?? null;
-	const title =
-		getFirstStringFromKeys(item, ["title"]) ?? null;
+	const citationKey = getFirstStringFromKeys(item, ["citationKey", "citationkey", "id"]) ?? null;
+	const zoteroId = getFirstStringFromKeys(item, ["zoteroId", "zotero_id", "key", "id"]) ?? null;
+	const title = getFirstStringFromKeys(item, ["title"]) ?? null;
 
 	return {
 		source: "json",
@@ -294,7 +288,10 @@ const buildJsonDescriptor = (item: Record<string, unknown>): ZoteroMetadataDescr
 };
 
 const parseBibFileField = (value: string): string[] => {
-	const segments = value.split(";").map((segment) => segment.trim()).filter(Boolean);
+	const segments = value
+		.split(";")
+		.map((segment) => segment.trim())
+		.filter(Boolean);
 	const paths: string[] = [];
 
 	for (const segment of segments) {
@@ -339,11 +336,7 @@ const collectBibAttachmentPaths = (entry: BibEntry): string[] => {
 
 const buildBibDescriptor = (entry: BibEntry): ZoteroMetadataDescriptor => {
 	const citationKey = entry.key ?? null;
-	const zoteroId =
-		entry.fields.zotero_id ??
-		entry.fields.id ??
-		entry.fields.citationkey ??
-		null;
+	const zoteroId = entry.fields.zotero_id ?? entry.fields.id ?? entry.fields.citationkey ?? null;
 	const title = entry.fields.title ?? entry.fields["title"] ?? null;
 
 	return {
@@ -402,11 +395,7 @@ const findPathInJsonValue = (
 	if (value && typeof value === "object") {
 		const obj = value as Record<string, unknown>;
 		for (const key of Object.keys(obj)) {
-			const childResult = findPathInJsonValue(
-				obj[key],
-				variants,
-				propertyPath.concat(key),
-			);
+			const childResult = findPathInJsonValue(obj[key], variants, propertyPath.concat(key));
 			if (childResult) {
 				return childResult;
 			}
@@ -671,7 +660,11 @@ const lookupCitationInJson = async (
 		if (!entry || typeof entry !== "object") continue;
 		const item = entry as Record<string, unknown>;
 		const descriptor = buildJsonDescriptor(item);
-		const matchInfo = findMatchingTopLevelField(item, ["citationKey", "citationkey", "id"], citationKey);
+		const matchInfo = findMatchingTopLevelField(
+			item,
+			["citationKey", "citationkey", "id"],
+			citationKey,
+		);
 		if (matchInfo) {
 			return {
 				success: true,
@@ -807,7 +800,9 @@ export const lookupZoteroMetadataByCitationKey = async (
 			if (jsonMatch) {
 				return jsonMatch;
 			}
-			errors.push(`No entry with citation key '${trimmedKey}' in JSON metadata at ${jsonPath}`);
+			errors.push(
+				`No entry with citation key '${trimmedKey}' in JSON metadata at ${jsonPath}`,
+			);
 		} else {
 			errors.push(`JSON metadata file not found at ${jsonPath}`);
 		}
@@ -820,7 +815,9 @@ export const lookupZoteroMetadataByCitationKey = async (
 			if (bibMatch) {
 				return bibMatch;
 			}
-			errors.push(`No entry with citation key '${trimmedKey}' in BibTeX metadata at ${bibPath}`);
+			errors.push(
+				`No entry with citation key '${trimmedKey}' in BibTeX metadata at ${bibPath}`,
+			);
 		} else {
 			errors.push(`BibTeX metadata file not found at ${bibPath}`);
 		}

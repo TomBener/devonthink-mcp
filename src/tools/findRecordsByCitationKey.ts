@@ -6,9 +6,7 @@ import {
 	generateFinderPathVariants,
 	lookupZoteroMetadataByCitationKey,
 } from "../utils/zoteroMetadata.js";
-import {
-	convertDevonthinkRecordHelper,
-} from "../utils/jxaHelpers.js";
+import { convertDevonthinkRecordHelper } from "../utils/jxaHelpers.js";
 import type {
 	ZoteroMatchType,
 	ZoteroMetadataDescriptor,
@@ -20,22 +18,21 @@ type ToolInput = z.infer<typeof ToolInputSchema>;
 
 const FinderPathLookupSchema = z
 	.object({
-		citationKey: z.string().min(1, "citationKey must not be empty").describe("Zotero citation key"),
-		zoteroJsonPath: z
+		citationKey: z
 			.string()
-			.optional()
-			.describe("Override path to Zotero JSON export"),
-		zoteroBibPath: z
-			.string()
-			.optional()
-			.describe("Override path to Zotero BibTeX export"),
+			.min(1, "citationKey must not be empty")
+			.describe("Zotero citation key"),
+		zoteroJsonPath: z.string().optional().describe("Override path to Zotero JSON export"),
+		zoteroBibPath: z.string().optional().describe("Override path to Zotero BibTeX export"),
 		maxRecordsPerPath: z
 			.number()
 			.int()
 			.min(1)
 			.max(50)
 			.optional()
-			.describe("Maximum number of DEVONthink records to return for each attachment path (default 5)"),
+			.describe(
+				"Maximum number of DEVONthink records to return for each attachment path (default 5)",
+			),
 	})
 	.strict();
 
@@ -284,4 +281,3 @@ export const findRecordsByCitationKeyTool: Tool = {
 	inputSchema: zodToJsonSchema(FinderPathLookupSchema) as ToolInput,
 	run: findRecordsByCitationKey,
 };
-

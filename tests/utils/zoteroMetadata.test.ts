@@ -19,8 +19,7 @@ describe("lookupZoteroMetadataByPath", () => {
 	});
 
 	it("finds metadata from the JSON export when the attachment path matches directly", async () => {
-		const finderPath =
-			"/Users/alex/Documents/Zotero/storage/ABC12345/Smith2024.pdf";
+		const finderPath = "/Users/alex/Documents/Zotero/storage/ABC12345/Smith2024.pdf";
 
 		const result = await lookupZoteroMetadataByPath(finderPath, {
 			jsonPath: jsonFixturePath,
@@ -43,8 +42,7 @@ describe("lookupZoteroMetadataByPath", () => {
 	});
 
 	it("finds metadata from the JSON export when the attachment stores a file URL", async () => {
-		const finderPath =
-			"/Users/alex/Documents/Zotero/storage/ABC12345/Smith2024-supplement.pdf";
+		const finderPath = "/Users/alex/Documents/Zotero/storage/ABC12345/Smith2024-supplement.pdf";
 
 		const result = await lookupZoteroMetadataByPath(finderPath, {
 			jsonPath: jsonFixturePath,
@@ -64,8 +62,7 @@ describe("lookupZoteroMetadataByPath", () => {
 	});
 
 	it("falls back to the BibTeX export when JSON is missing the attachment", async () => {
-		const finderPath =
-			"/Users/alex/Documents/Zotero/storage/GAR5566/Garcia2021.pdf";
+		const finderPath = "/Users/alex/Documents/Zotero/storage/GAR5566/Garcia2021.pdf";
 
 		const result = await lookupZoteroMetadataByPath(finderPath, {
 			jsonPath: jsonFixturePath,
