@@ -5,7 +5,10 @@ import { executeJxa } from "../applescript/execute.js";
 import { escapeStringForJXA, isJXASafeString } from "../utils/escapeString.js";
 import { getRecordLookupHelpers, getDatabaseHelper } from "../utils/jxaHelpers.js";
 import { lookupBibliographyMetadataByPath } from "../utils/bibliographyMetadata.js";
-import type { BibliographyMatchType, BibliographyMetadataDescriptor } from "../utils/bibliographyMetadata.js";
+import type {
+	BibliographyMatchType,
+	BibliographyMetadataDescriptor,
+} from "../utils/bibliographyMetadata.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = z.infer<typeof ToolInputSchema>;
@@ -228,7 +231,9 @@ const buildRecordLookupScript = (input: {
 	return parts.join("\n");
 };
 
-const getRecordFinderPath = async (input: GetBibliographyMetadataInput): Promise<RecordLookupResult> => {
+const getRecordFinderPath = async (
+	input: GetBibliographyMetadataInput,
+): Promise<RecordLookupResult> => {
 	try {
 		const script = buildRecordLookupScript(input);
 		return await executeJxa<RecordLookupResult>(script);
@@ -243,7 +248,15 @@ const getRecordFinderPath = async (input: GetBibliographyMetadataInput): Promise
 const getBibliographyMetadata = async (
 	input: GetBibliographyMetadataInput,
 ): Promise<BibliographyMetadataToolSuccess | BibliographyMetadataToolFailure> => {
-	const { uuid, id, databaseName, recordPath, finderPath, bibliographyJsonPath, bibliographyBibPath } = input;
+	const {
+		uuid,
+		id,
+		databaseName,
+		recordPath,
+		finderPath,
+		bibliographyJsonPath,
+		bibliographyBibPath,
+	} = input;
 
 	const metadataJsonPath = bibliographyJsonPath ?? process.env.BIBLIOGRAPHY_JSON ?? null;
 	const metadataBibPath = bibliographyBibPath ?? process.env.BIBLIOGRAPHY_BIB ?? null;

@@ -275,7 +275,8 @@ const findMatchingTopLevelField = (
 
 const buildJsonDescriptor = (item: Record<string, unknown>): BibliographyMetadataDescriptor => {
 	const citationKey = getFirstStringFromKeys(item, ["citationKey", "citationkey", "id"]) ?? null;
-	const bibliographyId = getFirstStringFromKeys(item, ["bibliographyId", "zotero_id", "key", "id"]) ?? null;
+	const bibliographyId =
+		getFirstStringFromKeys(item, ["bibliographyId", "zotero_id", "key", "id"]) ?? null;
 	const title = getFirstStringFromKeys(item, ["title"]) ?? null;
 
 	return {
@@ -336,7 +337,8 @@ const collectBibAttachmentPaths = (entry: BibEntry): string[] => {
 
 const buildBibDescriptor = (entry: BibEntry): BibliographyMetadataDescriptor => {
 	const citationKey = entry.key ?? null;
-	const bibliographyId = entry.fields.zotero_id ?? entry.fields.id ?? entry.fields.citationkey ?? null;
+	const bibliographyId =
+		entry.fields.zotero_id ?? entry.fields.id ?? entry.fields.citationkey ?? null;
 	const title = entry.fields.title ?? entry.fields["title"] ?? null;
 
 	return {

@@ -63,7 +63,9 @@ const SearchSchema = z
 		includeBibliography: z
 			.boolean()
 			.optional()
-			.describe("Include citation key and bibliography metadata in results (optional, default false)"),
+			.describe(
+				"Include citation key and bibliography metadata in results (optional, default false)",
+			),
 	})
 	.strict()
 	.refine(
@@ -119,7 +121,9 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
 		recordType,
 		comparison,
 		excludeSubgroups,
-		limit = 50,		includeBibliography = false,	} = input;
+		limit = 50,
+		includeBibliography = false,
+	} = input;
 
 	// Validate inputs
 	if (!isJXASafeString(query)) {

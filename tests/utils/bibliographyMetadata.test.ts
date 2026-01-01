@@ -42,7 +42,8 @@ describe("lookupBibliographyMetadataByPath", () => {
 	});
 
 	it("finds metadata from the JSON export when the attachment stores a file URL", async () => {
-		const finderPath = "/Users/alex/Documents/Bibliography/storage/ABC12345/Smith2024-supplement.pdf";
+		const finderPath =
+			"/Users/alex/Documents/Bibliography/storage/ABC12345/Smith2024-supplement.pdf";
 
 		const result = await lookupBibliographyMetadataByPath(finderPath, {
 			jsonPath: jsonFixturePath,

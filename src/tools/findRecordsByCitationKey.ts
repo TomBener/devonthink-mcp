@@ -22,8 +22,14 @@ const FinderPathLookupSchema = z
 			.string()
 			.min(1, "citationKey must not be empty")
 			.describe("Bibliography citation key"),
-		bibliographyJsonPath: z.string().optional().describe("Override path to Bibliography JSON export"),
-		bibliographyBibPath: z.string().optional().describe("Override path to Bibliography BibTeX export"),
+		bibliographyJsonPath: z
+			.string()
+			.optional()
+			.describe("Override path to Bibliography JSON export"),
+		bibliographyBibPath: z
+			.string()
+			.optional()
+			.describe("Override path to Bibliography BibTeX export"),
 		maxRecordsPerPath: z
 			.number()
 			.int()
