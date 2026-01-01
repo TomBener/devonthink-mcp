@@ -109,7 +109,7 @@ This MCP server provides access to DEVONthink functionality via the Model Contex
     - Input: Finder path, record UUID, DEVONthink ID + database, or DEVONthink location path (optional `bibliographyJsonPath` / `bibliographyBibPath` override export locations)
     - Returns: The matched bibliography item with top-level `citationKey`, `bibliographyId`, attachment list, and a short summary string for LLM prompts
 
-18. `get_records_by_citekey`
+18. `get_records_by_citation_key`
     - Resolves a citation key to its attachment metadata and matching DEVONthink records
     - Input: `citationKey` along with optional overrides for JSON/BibTeX export paths
     - Returns: Bibliography metadata (JSON or BibTeX) plus any DEVONthink records whose Finder paths match the attachment entries

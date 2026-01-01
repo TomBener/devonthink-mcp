@@ -275,7 +275,7 @@ const findRecordsByCitationKey = async (
 };
 
 export const findRecordsByCitationKeyTool: Tool = {
-	name: "get_records_by_citekey",
+	name: "get_records_by_citation_key",
 	description:
 		"Resolve a citation key to its attached files and matching DEVONthink records. Returns bibliography metadata and any DEVONthink records whose Finder paths match the attachment entries.",
 	inputSchema: zodToJsonSchema(FinderPathLookupSchema) as ToolInput,

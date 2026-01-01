@@ -69,7 +69,7 @@ The MCP server currently provides the following tools:
 22. **`convert_record`** - Convert records to different formats (plain text, rich text, markdown, HTML, PDF, etc.)
 23. **`update_record_content`** - Update the content of existing records while preserving UUID and metadata
 24. **`get_bib_metadata`** - Look up bibliography metadata for a DEVONthink record or Finder path, returning top-level `citationKey`, `bibliographyId`, attachment listings, and a short `metadataSummary`
-25. **`get_records_by_citekey`** - Resolve a citation key to its attachment metadata and any DEVONthink records whose Finder paths match those attachments
+25. **`get_records_by_citation_key`** - Resolve a citation key to its attachment metadata and any DEVONthink records whose Finder paths match those attachments
 
 ## Adding New Tools
 
