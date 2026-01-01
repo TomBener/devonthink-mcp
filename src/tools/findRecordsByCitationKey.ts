@@ -6,12 +6,7 @@ import {
 	generateFinderPathVariants,
 	lookupBibliographyMetadataByCitationKey,
 } from "../utils/bibliographyMetadata.js";
-import { convertDevonthinkRecordHelper } from "../utils/jxaHelpers.js";
-import type {
-	BibliographyMatchType,
-	BibliographyMetadataDescriptor,
-	BibliographyMetadataMatch,
-} from "../utils/bibliographyMetadata.js";
+import type { BibliographyMetadataMatch } from "../utils/bibliographyMetadata.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = z.infer<typeof ToolInputSchema>;
@@ -50,19 +45,15 @@ interface FinderPathRecord {
 	name?: string | null;
 	path?: string | null;
 	location?: string | null;
-	recordType?: string | null;
-	databaseName?: string | null;
-	databaseUuid?: string | null;
+	type?: string | null;
 	url?: string | null;
 	referenceURL?: string | null;
-	kind?: string | null;
+	tags?: string[] | null;
 }
 
 interface FinderPathLookupResult {
 	originalPath: string;
-	triedVariants: string[];
 	records: FinderPathRecord[];
-	errors?: string[];
 }
 
 interface FinderPathLookupResponse {
@@ -74,16 +65,8 @@ interface FinderPathLookupResponse {
 interface CitationLookupSuccess {
 	success: true;
 	citationKey: string;
-	source: "json" | "bib";
-	matchType: BibliographyMatchType;
-	descriptor: BibliographyMetadataDescriptor;
-	metadata: Record<string, unknown>;
-	attachments: string[];
-	recordMatches: FinderPathLookupResult[];
-	pathsChecked: {
-		json?: string | null;
-		bib?: string | null;
-	};
+	bibliographyMetadata: Record<string, unknown>;
+	devonthinkRecords: FinderPathRecord[];
 }
 
 interface CitationLookupFailure {
@@ -103,29 +86,64 @@ const buildFinderLookupScript = (
 ): string => {
 	const payload = JSON.stringify({ requests, maxPerPath });
 
+	// Simplified version of convertDevonthinkRecord that only returns essential fields
+	const convertRecordSimplified = `
+function convertDevonthinkRecord(record) {
+  if (!record) return null;
+
+  const isValuePresent = (value) => {
+    if (value === undefined || value === null) return false;
+    if (typeof value === "string" && value.trim() === "") return false;
+    if (Array.isArray(value) && value.length === 0) return false;
+    return true;
+  };
+
+  const converted = {};
+  try {
+    const id = record.id();
+    const uuid = record.uuid();
+    const name = record.name();
+    const type = record.type();
+    const location = record.location();
+    const path = record.path();
+    const url = record.url();
+    const referenceURL = record.referenceURL();
+    const tags = record.tags();
+
+    if (isValuePresent(id)) converted["id"] = id;
+    if (isValuePresent(uuid)) converted["uuid"] = uuid;
+    if (isValuePresent(name)) converted["name"] = name;
+    if (isValuePresent(type)) converted["type"] = type;
+    if (isValuePresent(location)) converted["location"] = location;
+    if (isValuePresent(path)) converted["path"] = path;
+    if (isValuePresent(url)) converted["url"] = url;
+    if (isValuePresent(referenceURL)) converted["referenceURL"] = referenceURL;
+    if (isValuePresent(tags)) converted["tags"] = tags;
+  } catch (e) {
+    // Continue with what we have
+  }
+
+  return converted;
+}`;
+
 	return `
     (() => {
       const theApp = Application("DEVONthink");
       theApp.includeStandardAdditions = true;
-      ${convertDevonthinkRecordHelper}
-      
+      ${convertRecordSimplified}
+
       try {
         const payload = ${payload};
         const results = [];
         const maxPerPath = payload.maxPerPath || 5;
-        
+
         payload.requests.forEach(request => {
-          const triedVariants = [];
           const records = [];
           const recordByUUID = {};
-          const errors = [];
-          
+
           request.variants.forEach(variant => {
-            if (!variant || triedVariants.includes(variant)) {
-              return;
-            }
-            triedVariants.push(variant);
-            
+            if (!variant) return;
+
             try {
               const matches = theApp.lookupRecordsWithPath(variant);
               if (matches && matches.length > 0) {
@@ -140,18 +158,16 @@ const buildFinderLookupScript = (
                 });
               }
             } catch (error) {
-              errors.push(String(error));
+              // Silently continue on errors
             }
           });
-          
+
           results.push({
             originalPath: request.path,
-            triedVariants,
-            records,
-            errors: errors.length > 0 ? errors : undefined
+            records
           });
         });
-        
+
         return JSON.stringify({ success: true, results });
       } catch (error) {
         return JSON.stringify({
@@ -198,28 +214,47 @@ const lookupRecordsForAttachments = async (
 	return response.results ?? [];
 };
 
+const isValuePresent = (value: unknown): boolean => {
+	if (value === undefined || value === null) return false;
+	if (typeof value === "string" && value.trim() === "") return false;
+	if (Array.isArray(value) && value.length === 0) return false;
+	return true;
+};
+
 const buildMetadataPayload = (match: BibliographyMetadataMatch): Record<string, unknown> => {
+	const result: Record<string, unknown> = {};
+
 	if (match.source === "json") {
-		return {
-			item: match.item,
-			matchType: match.matchType,
-			matchValue: match.matchValue,
-			propertyPath: match.propertyPath,
-			matchedField: match.matchedField,
-			metadataFile: match.metadataFile,
-		};
+		// Return only the core bibliographic fields, not the entire item
+		const item = match.item;
+		if (isValuePresent(item.author)) result.author = item.author;
+		if (isValuePresent(item.title)) result.title = item.title;
+		if (isValuePresent(item["container-title"]))
+			result["container-title"] = item["container-title"];
+		if (isValuePresent(item.volume)) result.volume = item.volume;
+		if (isValuePresent(item.issue)) result.issue = item.issue;
+		if (isValuePresent(item.page)) result.page = item.page;
+		if (isValuePresent(item.issued)) result.issued = item.issued;
+		if (isValuePresent(item.DOI)) result.DOI = item.DOI;
+		if (isValuePresent(item.ISBN)) result.ISBN = item.ISBN;
+		if (isValuePresent(item.type)) result.type = item.type;
+	} else {
+		// For BibTeX, return only essential fields
+		if (isValuePresent(match.entry.type)) result.entryType = match.entry.type;
+		if (isValuePresent(match.entry.fields.author)) result.author = match.entry.fields.author;
+		if (isValuePresent(match.entry.fields.title)) result.title = match.entry.fields.title;
+		if (isValuePresent(match.entry.fields.journal)) result.journal = match.entry.fields.journal;
+		if (isValuePresent(match.entry.fields.booktitle))
+			result.booktitle = match.entry.fields.booktitle;
+		if (isValuePresent(match.entry.fields.year)) result.year = match.entry.fields.year;
+		if (isValuePresent(match.entry.fields.volume)) result.volume = match.entry.fields.volume;
+		if (isValuePresent(match.entry.fields.number)) result.number = match.entry.fields.number;
+		if (isValuePresent(match.entry.fields.pages)) result.pages = match.entry.fields.pages;
+		if (isValuePresent(match.entry.fields.doi)) result.doi = match.entry.fields.doi;
+		if (isValuePresent(match.entry.fields.isbn)) result.isbn = match.entry.fields.isbn;
 	}
 
-	return {
-		entryType: match.entry.type,
-		citationKey: match.entry.key,
-		fields: match.entry.fields,
-		matchType: match.matchType,
-		matchValue: match.matchValue,
-		matchedField: match.matchedField,
-		rawEntry: match.rawEntry,
-		metadataFile: match.metadataFile,
-	};
+	return result;
 };
 
 const findRecordsByCitationKey = async (
@@ -252,10 +287,14 @@ const findRecordsByCitationKey = async (
 	const descriptor = lookupResult.descriptor;
 	const attachments = descriptor.attachmentPaths;
 
-	let recordMatches: FinderPathLookupResult[] = [];
+	// Collect all DEVONthink records across all attachments
+	const allRecords: FinderPathRecord[] = [];
 	if (attachments.length > 0) {
 		try {
-			recordMatches = await lookupRecordsForAttachments(attachments, maxRecordsPerPath);
+			const recordMatches = await lookupRecordsForAttachments(attachments, maxRecordsPerPath);
+			for (const match of recordMatches) {
+				allRecords.push(...match.records);
+			}
 		} catch (error) {
 			return {
 				success: false,
@@ -270,13 +309,8 @@ const findRecordsByCitationKey = async (
 	return {
 		success: true,
 		citationKey: trimmedKey,
-		source: lookupResult.source,
-		matchType: lookupResult.matchType,
-		descriptor,
-		metadata: buildMetadataPayload(lookupResult),
-		attachments,
-		recordMatches,
-		pathsChecked,
+		bibliographyMetadata: buildMetadataPayload(lookupResult),
+		devonthinkRecords: allRecords,
 	};
 };
 
