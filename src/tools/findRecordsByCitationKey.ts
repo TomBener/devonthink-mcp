@@ -65,7 +65,7 @@ interface FinderPathLookupResponse {
 interface CitationLookupSuccess {
 	success: true;
 	citationKey: string;
-	bibliographyMetadata: Record<string, unknown>;
+	bibliographyMetadata: string | null;
 	devonthinkRecords: FinderPathRecord[];
 }
 
@@ -221,40 +221,14 @@ const isValuePresent = (value: unknown): boolean => {
 	return true;
 };
 
-const buildMetadataPayload = (match: BibliographyMetadataMatch): Record<string, unknown> => {
-	const result: Record<string, unknown> = {};
-
+const buildMetadataPayload = (match: BibliographyMetadataMatch): string | null => {
 	if (match.source === "json") {
-		// Return only the core bibliographic fields, not the entire item
 		const item = match.item;
-		if (isValuePresent(item.author)) result.author = item.author;
-		if (isValuePresent(item.title)) result.title = item.title;
-		if (isValuePresent(item["container-title"]))
-			result["container-title"] = item["container-title"];
-		if (isValuePresent(item.volume)) result.volume = item.volume;
-		if (isValuePresent(item.issue)) result.issue = item.issue;
-		if (isValuePresent(item.page)) result.page = item.page;
-		if (isValuePresent(item.issued)) result.issued = item.issued;
-		if (isValuePresent(item.DOI)) result.DOI = item.DOI;
-		if (isValuePresent(item.ISBN)) result.ISBN = item.ISBN;
-		if (isValuePresent(item.type)) result.type = item.type;
+		return isValuePresent(item.title) ? String(item.title) : null;
 	} else {
-		// For BibTeX, return only essential fields
-		if (isValuePresent(match.entry.type)) result.entryType = match.entry.type;
-		if (isValuePresent(match.entry.fields.author)) result.author = match.entry.fields.author;
-		if (isValuePresent(match.entry.fields.title)) result.title = match.entry.fields.title;
-		if (isValuePresent(match.entry.fields.journal)) result.journal = match.entry.fields.journal;
-		if (isValuePresent(match.entry.fields.booktitle))
-			result.booktitle = match.entry.fields.booktitle;
-		if (isValuePresent(match.entry.fields.year)) result.year = match.entry.fields.year;
-		if (isValuePresent(match.entry.fields.volume)) result.volume = match.entry.fields.volume;
-		if (isValuePresent(match.entry.fields.number)) result.number = match.entry.fields.number;
-		if (isValuePresent(match.entry.fields.pages)) result.pages = match.entry.fields.pages;
-		if (isValuePresent(match.entry.fields.doi)) result.doi = match.entry.fields.doi;
-		if (isValuePresent(match.entry.fields.isbn)) result.isbn = match.entry.fields.isbn;
+		// For BibTeX, extract title from fields
+		return isValuePresent(match.entry.fields.title) ? String(match.entry.fields.title) : null;
 	}
-
-	return result;
 };
 
 const findRecordsByCitationKey = async (
