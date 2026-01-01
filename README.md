@@ -134,9 +134,27 @@ Returns:
 }
 ```
 
-## Usage with Claude
+## Installation
 
-Add to your Claude configuration:
+### Claude Code
+
+```bash
+claude mcp add --scope user devonthink --env BIBLIOGRAPHY_JSON=/path/to/bibliography.json -- npx -y github:TomBener/devonthink-mcp
+```
+
+The `--scope user` flag installs the MCP server for your user account (available in all projects). You can also use `--scope local` for the current workspace only.
+
+### Codex
+
+```bash
+codex mcp add devonthink --env BIBLIOGRAPHY_JSON=/path/to/bibliography.json -- npx -y github:TomBener/devonthink-mcp
+```
+
+## Configuration
+
+### Claude Desktop
+
+Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
 {
@@ -144,10 +162,27 @@ Add to your Claude configuration:
     "devonthink": {
       "command": "npx",
       "args": ["-y", "github:TomBener/devonthink-mcp"],
-        "env": {
-          "BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
-         // "BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
-        }
+      "env": {
+        "BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
+      }
+    }
+  }
+}
+```
+
+### VS Code
+
+Add to your VS Code MCP settings (`~/Library/Application Support/Code/User/mcp.json`):
+
+```json
+{
+  "servers": {
+    "devonthink": {
+      "command": "npx",
+      "args": ["-y", "github:TomBener/devonthink-mcp"],
+      "env": {
+        "BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
+      }
     }
   }
 }
