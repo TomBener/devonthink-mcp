@@ -164,6 +164,7 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
       "args": ["-y", "github:TomBener/devonthink-mcp"],
       "env": {
         "BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
+        // "BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
       }
     }
   }
@@ -182,6 +183,7 @@ Add to your VS Code MCP settings (`~/Library/Application Support/Code/User/mcp.j
       "args": ["-y", "github:TomBener/devonthink-mcp"],
       "env": {
         "BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
+        // "BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
       }
     }
   }
@@ -202,12 +204,12 @@ See [CLAUDE.md](./CLAUDE.md) for full documentation, tool development guidelines
 
 Bibliography attachments stored in DEVONthink can be matched to exported bibliography metadata. The MCP server inspects both JSON and BibTeX exports and prefers JSON when both are present.
 
-1. Export your bibliography library (or a subset) to `bibliography.json` and/or `bibliography.bib`.
+1. Export your bibliography library (or a subset) to `.json` or `.bib` in Zotero.
 2. Point the server at the exports via environment variables before launching it (using Claude's MCP configuration or your shell):
 
    ```bash
-   export BIBLIOGRAPHY_JSON="/path/to/bibliography.json"   # optional
-   export BIBLIOGRAPHY_BIB="/path/to/bibliography.bib"     # optional
+   export BIBLIOGRAPHY_JSON="/path/to/bibliography.json"
+   export BIBLIOGRAPHY_BIB="/path/to/bibliography.bib"
    ```
 
    - Supplying only one file is fine—the server detects whether you provided a `.json` or `.bib` path and uses it automatically.
