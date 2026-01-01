@@ -1,18 +1,18 @@
 {
-	"name": "devonthink-zotero-mcp",
+	"name": "devonthink-mcp",
 	"version": "1.5.0",
-	"description": "MCP server that provides access to DEVONthink and Zotero",
+	"description": "MCP server that provides access to DEVONthink",
 	"license": "MIT",
 	"author": "Tom Ben <mr.ren.tao123@gmail.com>",
-	"homepage": "https://github.com/TomBener/devonthink-zotero-mcp",
+	"homepage": "https://github.com/TomBener/devonthink-mcp",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/TomBener/devonthink-zotero-mcp.git"
+		"url": "git+https://github.com/TomBener/devonthink-mcp.git"
 	},
-	"bugs": "https://github.com/TomBener/devonthink-zotero-mcp/issues",
+	"bugs": "https://github.com/TomBener/devonthink-mcp/issues",
 	"type": "module",
 	"bin": {
-		"devonthink-zotero-mcp": "dist/index.js"
+		"devonthink-mcp": "dist/index.js"
 	},
 	"files": [
 		"dist"

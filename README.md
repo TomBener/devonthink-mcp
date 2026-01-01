@@ -1,8 +1,8 @@
 Modified based on [dvcrn/mcp-server-devonthink](https://github.com/dvcrn/mcp-server-devonthink)
 
-# DEVONthink Zotero MCP Server
+# DEVONthink MCP Server
 
-This MCP server provides access to DEVONthink functionality via the Model Context Protocol (MCP). It enables listing, searching, creating, modifying, and managing records and databases in DEVONthink Pro on macOS. Additionally, it includes tools to resolve Zotero metadata for DEVONthink attachments based on exported Zotero data.
+This MCP server provides access to DEVONthink functionality via the Model Context Protocol (MCP). It enables listing, searching, creating, modifying, and managing records and databases in DEVONthink Pro on macOS. Additionally, it includes tools to resolve bibliography metadata for DEVONthink attachments based on exported bibliography data.
 
 ![screenshot](./screenshot.png)
 
@@ -14,8 +14,8 @@ This MCP server provides access to DEVONthink functionality via the Model Contex
 - Retrieve and modify record content, properties, and tags
 - Create records from URLs in multiple formats
 - List open databases and group contents
-- Resolve Zotero metadata for DEVONthink attachments via Zotero exports
-- Locate DEVONthink records directly from Zotero citation keys or attachment metadata
+- Resolve bibliography metadata for DEVONthink attachments via bibliography exports
+- Locate DEVONthink records directly from citation keys or attachment metadata
 - All tools are type-safe and validated with Zod schemas
 
 ## Tools
@@ -104,15 +104,15 @@ This MCP server provides access to DEVONthink functionality via the Model Contex
     - Input: primary record UUID, optional second record UUID, database name, and comparison type
     - Returns: Either similar records (single mode) or detailed comparison analysis (two-record mode)
 
-17. `get_zotero_metadata`
-    - Resolves Zotero metadata for a DEVONthink record or Finder path
+17. `get_bib_metadata`
+    - Resolves bibliography metadata for a DEVONthink record or Finder path
     - Input: Finder path, record UUID, DEVONthink ID + database, or DEVONthink location path (optional `zoteroJsonPath` / `zoteroBibPath` override export locations)
-    - Returns: The matched Zotero item with top-level `citationKey`, `zoteroId`, attachment list, and a short summary string for LLM prompts
+    - Returns: The matched bibliography item with top-level `citationKey`, `zoteroId`, attachment list, and a short summary string for LLM prompts
 
-18. `find_records_by_citation_key`
-    - Resolves a Zotero citation key to its attachment metadata and matching DEVONthink records
-    - Input: `citationKey` along with optional overrides for Zotero JSON/BibTeX export paths
-    - Returns: Zotero metadata (JSON or BibTeX) plus any DEVONthink records whose Finder paths match the attachment entries
+18. `get_records_by_citekey`
+    - Resolves a citation key to its attachment metadata and matching DEVONthink records
+    - Input: `citationKey` along with optional overrides for JSON/BibTeX export paths
+    - Returns: Bibliography metadata (JSON or BibTeX) plus any DEVONthink records whose Finder paths match the attachment entries
 
 ### Example: Search Tool
 
@@ -143,7 +143,7 @@ Add to your Claude configuration:
   "mcpServers": {
     "devonthink": {
       "command": "npx",
-      "args": ["-y", "github:TomBener/devonthink-zotero-mcp"],
+      "args": ["-y", "github:TomBener/devonthink-mcp"],
         "env": {
           "ZOTERO_BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
          // "ZOTERO_BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
@@ -163,11 +163,11 @@ Add to your Claude configuration:
 
 See [CLAUDE.md](./CLAUDE.md) for full documentation, tool development guidelines, and API reference.
 
-## Zotero Metadata Lookup
+## Bibliography Metadata Lookup
 
-Zotero attachments stored in DEVONthink can be matched to exported Zotero metadata. The MCP server inspects both JSON and BibTeX exports and prefers JSON when both are present.
+Bibliography attachments stored in DEVONthink can be matched to exported bibliography metadata. The MCP server inspects both JSON and BibTeX exports and prefers JSON when both are present.
 
-1. Export your Zotero library (or a subset) to `bibliography.json` and/or `bibliography.bib`.
+1. Export your bibliography library (or a subset) to `bibliography.json` and/or `bibliography.bib`.
 2. Point the server at the exports via environment variables before launching it (using Claude's MCP configuration or your shell):
 
    ```bash
@@ -178,7 +178,7 @@ Zotero attachments stored in DEVONthink can be matched to exported Zotero metada
    - Supplying only one file is fine—the server detects whether you provided a `.json` or `.bib` path and uses it automatically.
    - If no metadata file is configured, the tool returns an informative error so you can correct the setup.
 
-3. Call the `get_zotero_metadata` tool with a Finder path or any supported DEVONthink identifier. The tool returns the matched Zotero entry (including citation key, fields, and the property that matched), exposes `citationKey` / `zoteroId` at the top level, and provides a brief `metadataSummary` string for LLM prompts. If no match is found, the response lists the files that were checked.
+3. Call the `get_bib_metadata` tool with a Finder path or any supported DEVONthink identifier. The tool returns the matched bibliography entry (including citation key, fields, and the property that matched), exposes `citationKey` / `zoteroId` at the top level, and provides a brief `metadataSummary` string for LLM prompts. If no match is found, the response lists the files that were checked.
 
 Example invocation:
 

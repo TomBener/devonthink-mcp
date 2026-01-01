@@ -387,9 +387,9 @@ const getZoteroMetadata = async (
 };
 
 export const getZoteroMetadataTool: Tool = {
-	name: "get_zotero_metadata",
+	name: "get_bib_metadata",
 	description:
-		"Look up Zotero metadata for a DEVONthink record. Provide a Finder path directly or identify the record by UUID, record ID (with database name), or DEVONthink location path. Optional `zoteroJsonPath` / `zoteroBibPath` inputs override the metadata export locations for a single call.",
+		"Look up bibliography metadata for a DEVONthink record. Provide a Finder path directly or identify the record by UUID, record ID (with database name), or DEVONthink location path. Optional `zoteroJsonPath` / `zoteroBibPath` inputs override the metadata export locations for a single call.",
 	inputSchema: zodToJsonSchema(GetZoteroMetadataSchema) as ToolInput,
 	run: getZoteroMetadata,
 };
