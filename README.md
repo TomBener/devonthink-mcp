@@ -106,8 +106,8 @@ This MCP server provides access to DEVONthink functionality via the Model Contex
 
 17. `get_bib_metadata`
     - Resolves bibliography metadata for a DEVONthink record or Finder path
-    - Input: Finder path, record UUID, DEVONthink ID + database, or DEVONthink location path (optional `zoteroJsonPath` / `zoteroBibPath` override export locations)
-    - Returns: The matched bibliography item with top-level `citationKey`, `zoteroId`, attachment list, and a short summary string for LLM prompts
+    - Input: Finder path, record UUID, DEVONthink ID + database, or DEVONthink location path (optional `bibliographyJsonPath` / `bibliographyBibPath` override export locations)
+    - Returns: The matched bibliography item with top-level `citationKey`, `bibliographyId`, attachment list, and a short summary string for LLM prompts
 
 18. `get_records_by_citekey`
     - Resolves a citation key to its attachment metadata and matching DEVONthink records
@@ -145,8 +145,8 @@ Add to your Claude configuration:
       "command": "npx",
       "args": ["-y", "github:TomBener/devonthink-mcp"],
         "env": {
-          "ZOTERO_BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
-         // "ZOTERO_BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
+          "BIBLIOGRAPHY_JSON": "/path/to/bibliography.json"
+         // "BIBLIOGRAPHY_BIB": "/path/to/bibliography.bib"
         }
     }
   }
@@ -171,14 +171,14 @@ Bibliography attachments stored in DEVONthink can be matched to exported bibliog
 2. Point the server at the exports via environment variables before launching it (using Claude's MCP configuration or your shell):
 
    ```bash
-   export ZOTERO_BIBLIOGRAPHY_JSON="/path/to/bibliography.json"   # optional
-   export ZOTERO_BIBLIOGRAPHY_BIB="/path/to/bibliography.bib"     # optional
+   export BIBLIOGRAPHY_JSON="/path/to/bibliography.json"   # optional
+   export BIBLIOGRAPHY_BIB="/path/to/bibliography.bib"     # optional
    ```
 
    - Supplying only one file is fine—the server detects whether you provided a `.json` or `.bib` path and uses it automatically.
    - If no metadata file is configured, the tool returns an informative error so you can correct the setup.
 
-3. Call the `get_bib_metadata` tool with a Finder path or any supported DEVONthink identifier. The tool returns the matched bibliography entry (including citation key, fields, and the property that matched), exposes `citationKey` / `zoteroId` at the top level, and provides a brief `metadataSummary` string for LLM prompts. If no match is found, the response lists the files that were checked.
+3. Call the `get_bib_metadata` tool with a Finder path or any supported DEVONthink identifier. The tool returns the matched bibliography entry (including citation key, fields, and the property that matched), exposes `citationKey` / `bibliographyId` at the top level, and provides a brief `metadataSummary` string for LLM prompts. If no match is found, the response lists the files that were checked.
 
 Example invocation:
 

@@ -32,7 +32,7 @@ import { replicateRecordTool } from "./tools/replicateRecord.js";
 import { duplicateRecordTool } from "./tools/duplicateRecord.js";
 import { convertRecordTool } from "./tools/convertRecord.js";
 import { updateRecordContentTool } from "./tools/updateRecordContent.js";
-import { getZoteroMetadataTool } from "./tools/getZoteroMetadata.js";
+import { getBibliographyMetadataTool } from "./tools/getBibliographyMetadata.js";
 import { findRecordsByCitationKeyTool } from "./tools/findRecordsByCitationKey.js";
 
 export const createServer = async () => {
@@ -74,7 +74,7 @@ export const createServer = async () => {
 		duplicateRecordTool,
 		convertRecordTool,
 		updateRecordContentTool,
-		getZoteroMetadataTool,
+		getBibliographyMetadataTool,
 		findRecordsByCitationKeyTool,
 	];
 

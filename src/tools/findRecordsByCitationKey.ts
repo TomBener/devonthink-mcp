@@ -4,14 +4,14 @@ import { Tool, ToolSchema } from "@modelcontextprotocol/sdk/types.js";
 import { executeJxa } from "../applescript/execute.js";
 import {
 	generateFinderPathVariants,
-	lookupZoteroMetadataByCitationKey,
-} from "../utils/zoteroMetadata.js";
+	lookupBibliographyMetadataByCitationKey,
+} from "../utils/bibliographyMetadata.js";
 import { convertDevonthinkRecordHelper } from "../utils/jxaHelpers.js";
 import type {
-	ZoteroMatchType,
-	ZoteroMetadataDescriptor,
-	ZoteroMetadataMatch,
-} from "../utils/zoteroMetadata.js";
+	BibliographyMatchType,
+	BibliographyMetadataDescriptor,
+	BibliographyMetadataMatch,
+} from "../utils/bibliographyMetadata.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = z.infer<typeof ToolInputSchema>;
@@ -21,9 +21,9 @@ const FinderPathLookupSchema = z
 		citationKey: z
 			.string()
 			.min(1, "citationKey must not be empty")
-			.describe("Zotero citation key"),
-		zoteroJsonPath: z.string().optional().describe("Override path to Zotero JSON export"),
-		zoteroBibPath: z.string().optional().describe("Override path to Zotero BibTeX export"),
+			.describe("Bibliography citation key"),
+		bibliographyJsonPath: z.string().optional().describe("Override path to Bibliography JSON export"),
+		bibliographyBibPath: z.string().optional().describe("Override path to Bibliography BibTeX export"),
 		maxRecordsPerPath: z
 			.number()
 			.int()
@@ -69,8 +69,8 @@ interface CitationLookupSuccess {
 	success: true;
 	citationKey: string;
 	source: "json" | "bib";
-	matchType: ZoteroMatchType;
-	descriptor: ZoteroMetadataDescriptor;
+	matchType: BibliographyMatchType;
+	descriptor: BibliographyMetadataDescriptor;
 	metadata: Record<string, unknown>;
 	attachments: string[];
 	recordMatches: FinderPathLookupResult[];
@@ -192,7 +192,7 @@ const lookupRecordsForAttachments = async (
 	return response.results ?? [];
 };
 
-const buildMetadataPayload = (match: ZoteroMetadataMatch): Record<string, unknown> => {
+const buildMetadataPayload = (match: BibliographyMetadataMatch): Record<string, unknown> => {
 	if (match.source === "json") {
 		return {
 			item: match.item,
@@ -219,16 +219,16 @@ const buildMetadataPayload = (match: ZoteroMetadataMatch): Record<string, unknow
 const findRecordsByCitationKey = async (
 	input: FinderPathLookupInput,
 ): Promise<CitationLookupSuccess | CitationLookupFailure> => {
-	const { citationKey, zoteroJsonPath, zoteroBibPath, maxRecordsPerPath = 5 } = input;
+	const { citationKey, bibliographyJsonPath, bibliographyBibPath, maxRecordsPerPath = 5 } = input;
 	const trimmedKey = citationKey.trim();
-	const metadataJsonPath = zoteroJsonPath ?? process.env.ZOTERO_BIBLIOGRAPHY_JSON ?? null;
-	const metadataBibPath = zoteroBibPath ?? process.env.ZOTERO_BIBLIOGRAPHY_BIB ?? null;
+	const metadataJsonPath = bibliographyJsonPath ?? process.env.BIBLIOGRAPHY_JSON ?? null;
+	const metadataBibPath = bibliographyBibPath ?? process.env.BIBLIOGRAPHY_BIB ?? null;
 	const pathsChecked = {
 		json: metadataJsonPath,
 		bib: metadataBibPath,
 	};
 
-	const lookupResult = await lookupZoteroMetadataByCitationKey(trimmedKey, {
+	const lookupResult = await lookupBibliographyMetadataByCitationKey(trimmedKey, {
 		jsonPath: metadataJsonPath ?? undefined,
 		bibPath: metadataBibPath ?? undefined,
 	});
@@ -236,7 +236,7 @@ const findRecordsByCitationKey = async (
 	if (!lookupResult.success) {
 		return {
 			success: false,
-			error: `No Zotero metadata entry found for citation key '${trimmedKey}'`,
+			error: `No Bibliography metadata entry found for citation key '${trimmedKey}'`,
 			citationKey: trimmedKey,
 			details: lookupResult.errors,
 			pathsChecked,

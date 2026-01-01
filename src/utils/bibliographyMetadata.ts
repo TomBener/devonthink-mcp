@@ -3,43 +3,43 @@ import os from "os";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
-export type ZoteroMatchType = "path" | "citationKey" | "zoteroId";
+export type BibliographyMatchType = "path" | "citationKey" | "bibliographyId";
 
-export interface ZoteroMetadataDescriptor {
+export interface BibliographyMetadataDescriptor {
 	source: "json" | "bib";
 	citationKey?: string | null;
-	zoteroId?: string | null;
+	bibliographyId?: string | null;
 	title?: string | null;
 	attachmentPaths: string[];
 }
 
-export interface ZoteroJsonMatch {
+export interface BibliographyJsonMatch {
 	success: true;
 	source: "json";
 	item: Record<string, unknown>;
-	matchType: ZoteroMatchType;
+	matchType: BibliographyMatchType;
 	matchValue: string;
 	propertyPath: string[];
-	descriptor: ZoteroMetadataDescriptor;
+	descriptor: BibliographyMetadataDescriptor;
 	metadataFile?: string;
 	matchedField?: string;
 }
 
-export interface ZoteroBibMatch {
+export interface BibliographyBibMatch {
 	success: true;
 	source: "bib";
 	entry: BibEntry;
 	rawEntry: string;
-	matchType: ZoteroMatchType;
+	matchType: BibliographyMatchType;
 	matchValue: string;
-	descriptor: ZoteroMetadataDescriptor;
+	descriptor: BibliographyMetadataDescriptor;
 	metadataFile?: string;
 	matchedField?: string;
 }
 
-export type ZoteroMetadataMatch = ZoteroJsonMatch | ZoteroBibMatch;
+export type BibliographyMetadataMatch = BibliographyJsonMatch | BibliographyBibMatch;
 
-export interface ZoteroLookupOptions {
+export interface BibliographyLookupOptions {
 	jsonPath?: string;
 	bibPath?: string;
 }
@@ -273,15 +273,15 @@ const findMatchingTopLevelField = (
 	return null;
 };
 
-const buildJsonDescriptor = (item: Record<string, unknown>): ZoteroMetadataDescriptor => {
+const buildJsonDescriptor = (item: Record<string, unknown>): BibliographyMetadataDescriptor => {
 	const citationKey = getFirstStringFromKeys(item, ["citationKey", "citationkey", "id"]) ?? null;
-	const zoteroId = getFirstStringFromKeys(item, ["zoteroId", "zotero_id", "key", "id"]) ?? null;
+	const bibliographyId = getFirstStringFromKeys(item, ["bibliographyId", "zotero_id", "key", "id"]) ?? null;
 	const title = getFirstStringFromKeys(item, ["title"]) ?? null;
 
 	return {
 		source: "json",
 		citationKey,
-		zoteroId,
+		bibliographyId,
 		title,
 		attachmentPaths: collectJsonAttachmentPaths(item),
 	};
@@ -334,15 +334,15 @@ const collectBibAttachmentPaths = (entry: BibEntry): string[] => {
 	return Array.from(paths);
 };
 
-const buildBibDescriptor = (entry: BibEntry): ZoteroMetadataDescriptor => {
+const buildBibDescriptor = (entry: BibEntry): BibliographyMetadataDescriptor => {
 	const citationKey = entry.key ?? null;
-	const zoteroId = entry.fields.zotero_id ?? entry.fields.id ?? entry.fields.citationkey ?? null;
+	const bibliographyId = entry.fields.zotero_id ?? entry.fields.id ?? entry.fields.citationkey ?? null;
 	const title = entry.fields.title ?? entry.fields["title"] ?? null;
 
 	return {
 		source: "bib",
 		citationKey,
-		zoteroId: zoteroId ?? null,
+		bibliographyId: bibliographyId ?? null,
 		title: title ?? null,
 		attachmentPaths: collectBibAttachmentPaths(entry),
 	};
@@ -408,7 +408,7 @@ const findPathInJsonValue = (
 const lookupInJson = async (
 	finderPath: string,
 	filePath: string,
-): Promise<ZoteroJsonMatch | null> => {
+): Promise<BibliographyJsonMatch | null> => {
 	const variants = generatePathVariants(finderPath);
 	const parsed = await readJsonCache(filePath);
 	if (!parsed) {
@@ -615,7 +615,7 @@ const readBibCache = async (filePath: string): Promise<BibEntry[] | null> => {
 const lookupInBib = async (
 	finderPath: string,
 	filePath: string,
-): Promise<ZoteroBibMatch | null> => {
+): Promise<BibliographyBibMatch | null> => {
 	const variants = generatePathVariants(finderPath);
 	const entries = await readBibCache(filePath);
 
@@ -649,7 +649,7 @@ const lookupInBib = async (
 const lookupCitationInJson = async (
 	citationKey: string,
 	filePath: string,
-): Promise<ZoteroJsonMatch | null> => {
+): Promise<BibliographyJsonMatch | null> => {
 	const parsed = await readJsonCache(filePath);
 	if (!parsed) {
 		return null;
@@ -686,7 +686,7 @@ const lookupCitationInJson = async (
 const lookupCitationInBib = async (
 	citationKey: string,
 	filePath: string,
-): Promise<ZoteroBibMatch | null> => {
+): Promise<BibliographyBibMatch | null> => {
 	const entries = await readBibCache(filePath);
 	if (!entries) {
 		return null;
@@ -732,13 +732,13 @@ const lookupCitationInBib = async (
 	return null;
 };
 
-export const lookupZoteroMetadataByPath = async (
+export const lookupBibliographyMetadataByPath = async (
 	finderPath: string,
-	options: ZoteroLookupOptions = {},
-): Promise<ZoteroMetadataMatch | { success: false; errors: string[] }> => {
+	options: BibliographyLookupOptions = {},
+): Promise<BibliographyMetadataMatch | { success: false; errors: string[] }> => {
 	const errors: string[] = [];
-	const jsonPath = options.jsonPath ?? process.env.ZOTERO_BIBLIOGRAPHY_JSON ?? null;
-	const bibPath = options.bibPath ?? process.env.ZOTERO_BIBLIOGRAPHY_BIB ?? null;
+	const jsonPath = options.jsonPath ?? process.env.BIBLIOGRAPHY_JSON ?? null;
+	const bibPath = options.bibPath ?? process.env.BIBLIOGRAPHY_BIB ?? null;
 	let attempted = false;
 
 	if (jsonPath) {
@@ -769,17 +769,17 @@ export const lookupZoteroMetadataByPath = async (
 
 	if (!attempted) {
 		errors.push(
-			"No Zotero metadata files configured. Provide ZOTERO_BIBLIOGRAPHY_JSON or ZOTERO_BIBLIOGRAPHY_BIB, or call lookupZoteroMetadataByPath with explicit paths.",
+			"No Bibliography metadata files configured. Provide BIBLIOGRAPHY_JSON or BIBLIOGRAPHY_BIB, or call lookupBibliographyMetadataByPath with explicit paths.",
 		);
 	}
 
 	return { success: false, errors };
 };
 
-export const lookupZoteroMetadataByCitationKey = async (
+export const lookupBibliographyMetadataByCitationKey = async (
 	citationKey: string,
-	options: ZoteroLookupOptions = {},
-): Promise<ZoteroMetadataMatch | { success: false; errors: string[] }> => {
+	options: BibliographyLookupOptions = {},
+): Promise<BibliographyMetadataMatch | { success: false; errors: string[] }> => {
 	const trimmedKey = citationKey.trim();
 	if (!trimmedKey) {
 		return {
@@ -789,8 +789,8 @@ export const lookupZoteroMetadataByCitationKey = async (
 	}
 
 	const errors: string[] = [];
-	const jsonPath = options.jsonPath ?? process.env.ZOTERO_BIBLIOGRAPHY_JSON ?? null;
-	const bibPath = options.bibPath ?? process.env.ZOTERO_BIBLIOGRAPHY_BIB ?? null;
+	const jsonPath = options.jsonPath ?? process.env.BIBLIOGRAPHY_JSON ?? null;
+	const bibPath = options.bibPath ?? process.env.BIBLIOGRAPHY_BIB ?? null;
 	let attempted = false;
 
 	if (jsonPath) {
@@ -825,14 +825,14 @@ export const lookupZoteroMetadataByCitationKey = async (
 
 	if (!attempted) {
 		errors.push(
-			"No Zotero metadata files configured. Provide ZOTERO_BIBLIOGRAPHY_JSON or ZOTERO_BIBLIOGRAPHY_BIB, or call lookupZoteroMetadataByCitationKey with explicit paths.",
+			"No Bibliography metadata files configured. Provide BIBLIOGRAPHY_JSON or BIBLIOGRAPHY_BIB, or call lookupBibliographyMetadataByCitationKey with explicit paths.",
 		);
 	}
 
 	return { success: false, errors };
 };
 
-export const clearZoteroMetadataCache = (): void => {
+export const clearBibliographyMetadataCache = (): void => {
 	CACHE.json.clear();
 	CACHE.bib.clear();
 };

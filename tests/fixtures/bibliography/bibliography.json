@@ -15,11 +15,11 @@
 		"attachments": [
 			{
 				"title": "Full Text PDF",
-				"localPath": "/Users/alex/Documents/Zotero/storage/ABC12345/Smith2024.pdf"
+				"localPath": "/Users/alex/Documents/Bibliography/storage/ABC12345/Smith2024.pdf"
 			},
 			{
 				"title": "Supplement",
-				"localPath": "file:///Users/alex/Documents/Zotero/storage/ABC12345/Smith2024-supplement.pdf"
+				"localPath": "file:///Users/alex/Documents/Bibliography/storage/ABC12345/Smith2024-supplement.pdf"
 			}
 		]
 	},
@@ -36,7 +36,7 @@
 		"attachments": [
 			{
 				"title": "Conference Paper",
-				"path": "/Users/alex/Documents/Zotero/storage/XYZ9876/Miller2023.pdf"
+				"path": "/Users/alex/Documents/Bibliography/storage/XYZ9876/Miller2023.pdf"
 			}
 		]
 	}

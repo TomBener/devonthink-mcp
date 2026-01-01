@@ -4,13 +4,13 @@ import { Tool, ToolSchema } from "@modelcontextprotocol/sdk/types.js";
 import { executeJxa } from "../applescript/execute.js";
 import { escapeStringForJXA, isJXASafeString } from "../utils/escapeString.js";
 import { getRecordLookupHelpers, getDatabaseHelper } from "../utils/jxaHelpers.js";
-import { lookupZoteroMetadataByPath } from "../utils/zoteroMetadata.js";
-import type { ZoteroMatchType, ZoteroMetadataDescriptor } from "../utils/zoteroMetadata.js";
+import { lookupBibliographyMetadataByPath } from "../utils/bibliographyMetadata.js";
+import type { BibliographyMatchType, BibliographyMetadataDescriptor } from "../utils/bibliographyMetadata.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = z.infer<typeof ToolInputSchema>;
 
-const GetZoteroMetadataSchema = z
+const GetBibliographyMetadataSchema = z
 	.object({
 		uuid: z.string().optional().describe("UUID of the DEVONthink record"),
 		id: z.number().optional().describe("DEVONthink record ID (requires databaseName)"),
@@ -26,14 +26,14 @@ const GetZoteroMetadataSchema = z
 			.string()
 			.optional()
 			.describe("Absolute Finder path to the file, e.g. /Users/me/Documents/file.pdf"),
-		zoteroJsonPath: z
+		bibliographyJsonPath: z
 			.string()
 			.optional()
-			.describe("Path to a Zotero JSON export containing attachment metadata"),
-		zoteroBibPath: z
+			.describe("Path to a Bibliography JSON export containing attachment metadata"),
+		bibliographyBibPath: z
 			.string()
 			.optional()
-			.describe("Path to a Zotero BibTeX export containing attachment metadata"),
+			.describe("Path to a Bibliography BibTeX export containing attachment metadata"),
 	})
 	.strict()
 	.refine(
@@ -53,7 +53,7 @@ const GetZoteroMetadataSchema = z
 		message: "databaseName is required when using record ID",
 	});
 
-type GetZoteroMetadataInput = z.infer<typeof GetZoteroMetadataSchema>;
+type GetBibliographyMetadataInput = z.infer<typeof GetBibliographyMetadataSchema>;
 
 interface RecordLookupResult {
 	success: boolean;
@@ -71,18 +71,18 @@ interface RecordLookupResult {
 	};
 }
 
-interface ZoteroMetadataToolSuccess {
+interface BibliographyMetadataToolSuccess {
 	success: true;
 	finderPath: string;
 	source: "json" | "bib";
-	matchType: ZoteroMatchType;
+	matchType: BibliographyMatchType;
 	lookupMethod?: string | null;
 	record?: RecordLookupResult["record"];
 	metadata: Record<string, unknown>;
-	descriptor: ZoteroMetadataDescriptor;
+	descriptor: BibliographyMetadataDescriptor;
 	attachments: string[];
 	citationKey?: string | null;
-	zoteroId?: string | null;
+	bibliographyId?: string | null;
 	metadataSummary?: string;
 	pathsChecked: {
 		json?: string | null;
@@ -90,7 +90,7 @@ interface ZoteroMetadataToolSuccess {
 	};
 }
 
-interface ZoteroMetadataToolFailure {
+interface BibliographyMetadataToolFailure {
 	success: false;
 	error: string;
 	details?: string[];
@@ -100,15 +100,15 @@ interface ZoteroMetadataToolFailure {
 	};
 }
 
-const buildMetadataSummary = (descriptor: ZoteroMetadataDescriptor): string | undefined => {
+const buildMetadataSummary = (descriptor: BibliographyMetadataDescriptor): string | undefined => {
 	const parts: string[] = [];
 
 	if (descriptor.citationKey) {
 		parts.push(`citationKey=${descriptor.citationKey}`);
 	}
 
-	if (descriptor.zoteroId && descriptor.zoteroId !== descriptor.citationKey) {
-		parts.push(`id=${descriptor.zoteroId}`);
+	if (descriptor.bibliographyId && descriptor.bibliographyId !== descriptor.citationKey) {
+		parts.push(`id=${descriptor.bibliographyId}`);
 	}
 
 	if (descriptor.title) {
@@ -228,7 +228,7 @@ const buildRecordLookupScript = (input: {
 	return parts.join("\n");
 };
 
-const getRecordFinderPath = async (input: GetZoteroMetadataInput): Promise<RecordLookupResult> => {
+const getRecordFinderPath = async (input: GetBibliographyMetadataInput): Promise<RecordLookupResult> => {
 	try {
 		const script = buildRecordLookupScript(input);
 		return await executeJxa<RecordLookupResult>(script);
@@ -240,13 +240,13 @@ const getRecordFinderPath = async (input: GetZoteroMetadataInput): Promise<Recor
 	}
 };
 
-const getZoteroMetadata = async (
-	input: GetZoteroMetadataInput,
-): Promise<ZoteroMetadataToolSuccess | ZoteroMetadataToolFailure> => {
-	const { uuid, id, databaseName, recordPath, finderPath, zoteroJsonPath, zoteroBibPath } = input;
+const getBibliographyMetadata = async (
+	input: GetBibliographyMetadataInput,
+): Promise<BibliographyMetadataToolSuccess | BibliographyMetadataToolFailure> => {
+	const { uuid, id, databaseName, recordPath, finderPath, bibliographyJsonPath, bibliographyBibPath } = input;
 
-	const metadataJsonPath = zoteroJsonPath ?? process.env.ZOTERO_BIBLIOGRAPHY_JSON ?? null;
-	const metadataBibPath = zoteroBibPath ?? process.env.ZOTERO_BIBLIOGRAPHY_BIB ?? null;
+	const metadataJsonPath = bibliographyJsonPath ?? process.env.BIBLIOGRAPHY_JSON ?? null;
+	const metadataBibPath = bibliographyBibPath ?? process.env.BIBLIOGRAPHY_BIB ?? null;
 	const pathsChecked = {
 		json: metadataJsonPath,
 		bib: metadataBibPath,
@@ -315,7 +315,7 @@ const getZoteroMetadata = async (
 		};
 	}
 
-	const lookupResult = await lookupZoteroMetadataByPath(resolvedFinderPath, {
+	const lookupResult = await lookupBibliographyMetadataByPath(resolvedFinderPath, {
 		jsonPath: metadataJsonPath ?? undefined,
 		bibPath: metadataBibPath ?? undefined,
 	});
@@ -323,7 +323,7 @@ const getZoteroMetadata = async (
 	if (!lookupResult.success) {
 		return {
 			success: false,
-			error: "No Zotero metadata entry found for the provided Finder path",
+			error: "No Bibliography metadata entry found for the provided Finder path",
 			details: lookupResult.errors,
 			pathsChecked,
 		};
@@ -331,8 +331,8 @@ const getZoteroMetadata = async (
 
 	if (lookupResult.source === "json") {
 		const descriptor = lookupResult.descriptor;
-		const citationKey = descriptor.citationKey ?? descriptor.zoteroId ?? null;
-		const zoteroId = descriptor.zoteroId ?? descriptor.citationKey ?? null;
+		const citationKey = descriptor.citationKey ?? descriptor.bibliographyId ?? null;
+		const bibliographyId = descriptor.bibliographyId ?? descriptor.citationKey ?? null;
 
 		return {
 			success: true,
@@ -351,7 +351,7 @@ const getZoteroMetadata = async (
 			descriptor,
 			attachments: descriptor.attachmentPaths,
 			citationKey,
-			zoteroId,
+			bibliographyId,
 			metadataSummary: buildMetadataSummary(descriptor),
 			pathsChecked,
 		};
@@ -359,7 +359,7 @@ const getZoteroMetadata = async (
 
 	const bibDescriptor = lookupResult.descriptor;
 	const citationKey = bibDescriptor.citationKey ?? lookupResult.entry.key ?? null;
-	const zoteroId = bibDescriptor.zoteroId ?? bibDescriptor.citationKey ?? null;
+	const bibliographyId = bibDescriptor.bibliographyId ?? bibDescriptor.citationKey ?? null;
 
 	return {
 		success: true,
@@ -380,16 +380,16 @@ const getZoteroMetadata = async (
 		descriptor: bibDescriptor,
 		attachments: bibDescriptor.attachmentPaths,
 		citationKey,
-		zoteroId,
+		bibliographyId,
 		metadataSummary: buildMetadataSummary(bibDescriptor),
 		pathsChecked,
 	};
 };
 
-export const getZoteroMetadataTool: Tool = {
+export const getBibliographyMetadataTool: Tool = {
 	name: "get_bib_metadata",
 	description:
-		"Look up bibliography metadata for a DEVONthink record. Provide a Finder path directly or identify the record by UUID, record ID (with database name), or DEVONthink location path. Optional `zoteroJsonPath` / `zoteroBibPath` inputs override the metadata export locations for a single call.",
-	inputSchema: zodToJsonSchema(GetZoteroMetadataSchema) as ToolInput,
-	run: getZoteroMetadata,
+		"Look up bibliography metadata for a DEVONthink record. Provide a Finder path directly or identify the record by UUID, record ID (with database name), or DEVONthink location path. Optional `bibliographyJsonPath` / `bibliographyBibPath` inputs override the metadata export locations for a single call.",
+	inputSchema: zodToJsonSchema(GetBibliographyMetadataSchema) as ToolInput,
+	run: getBibliographyMetadata,
 };

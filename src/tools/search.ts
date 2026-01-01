@@ -9,6 +9,7 @@ import {
 	escapeStringForJXA,
 } from "../utils/escapeString.js";
 import { getRecordLookupHelpers, getDatabaseHelper, isGroupHelper } from "../utils/jxaHelpers.js";
+import { lookupBibliographyMetadataByPath } from "../utils/bibliographyMetadata.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = z.infer<typeof ToolInputSchema>;
@@ -59,6 +60,10 @@ const SearchSchema = z
 			.optional()
 			.describe("Exclude subgroups from the search (optional)"),
 		limit: z.number().optional().describe("Maximum number of results to return (optional)"),
+		includeBibliography: z
+			.boolean()
+			.optional()
+			.describe("Include citation key and bibliography metadata in results (optional, default false)"),
 	})
 	.strict()
 	.refine(
@@ -97,6 +102,8 @@ interface SearchResult {
 		modificationDate?: string;
 		tags?: string[];
 		size?: number;
+		citationKey?: string | null;
+		bibliographyTitle?: string | null;
 	}>;
 	totalCount?: number;
 }
@@ -112,8 +119,7 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
 		recordType,
 		comparison,
 		excludeSubgroups,
-		limit = 50,
-	} = input;
+		limit = 50,		includeBibliography = false,	} = input;
 
 	// Validate inputs
 	if (!isJXASafeString(query)) {
@@ -305,7 +311,29 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
     })();
   `;
 
-	return await executeJxa<SearchResult>(script);
+	const result = await executeJxa<SearchResult>(script);
+
+	// Enrich results with bibliography metadata if requested
+	if (includeBibliography && result.success && result.results) {
+		for (const record of result.results) {
+			try {
+				const metadata = await lookupBibliographyMetadataByPath(record.path);
+				if (metadata.success) {
+					record.citationKey = metadata.descriptor.citationKey ?? null;
+					record.bibliographyTitle = metadata.descriptor.title ?? null;
+				} else {
+					record.citationKey = null;
+					record.bibliographyTitle = null;
+				}
+			} catch {
+				// Silently skip if lookup fails
+				record.citationKey = null;
+				record.bibliographyTitle = null;
+			}
+		}
+	}
+
+	return result;
 };
 
 export const searchTool: Tool = {
