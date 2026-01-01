@@ -60,12 +60,6 @@ const SearchSchema = z
 			.optional()
 			.describe("Exclude subgroups from the search (optional)"),
 		limit: z.number().optional().describe("Maximum number of results to return (optional)"),
-		includeBibliography: z
-			.boolean()
-			.optional()
-			.describe(
-				"Include citation key and bibliography metadata in results (optional, default false)",
-			),
 	})
 	.strict()
 	.refine(
@@ -92,6 +86,7 @@ interface SearchResult {
 	success: boolean;
 	error?: string;
 	results?: Array<{
+		citationKey: string;
 		id: number;
 		uuid: string;
 		name: string;
@@ -104,8 +99,6 @@ interface SearchResult {
 		modificationDate?: string;
 		tags?: string[];
 		size?: number;
-		citationKey?: string | null;
-		bibliographyTitle?: string | null;
 	}>;
 	totalCount?: number;
 }
@@ -122,7 +115,6 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
 		comparison,
 		excludeSubgroups,
 		limit = 50,
-		includeBibliography = false,
 	} = input;
 
 	// Validate inputs
@@ -284,6 +276,7 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
         const results = limitedResults.map((record, index) => {
           try {
             const result = {};
+            result["citationKey"] = "";
             result["id"] = record.id();
             result["uuid"] = record.uuid();
             result["name"] = record.name();
@@ -317,22 +310,24 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
 
 	const result = await executeJxa<SearchResult>(script);
 
-	// Enrich results with bibliography metadata if requested
-	if (includeBibliography && result.success && result.results) {
+	// Always enrich results with citation keys from Zotero bibliography
+	if (result.success && result.results) {
+		const hasConfig = process.env.BIBLIOGRAPHY_JSON || process.env.BIBLIOGRAPHY_BIB;
+		
 		for (const record of result.results) {
+			if (!hasConfig) {
+				// Skip lookup if no config - leave as empty string
+				continue;
+			}
+			
 			try {
 				const metadata = await lookupBibliographyMetadataByPath(record.path);
-				if (metadata.success) {
-					record.citationKey = metadata.descriptor.citationKey ?? null;
-					record.bibliographyTitle = metadata.descriptor.title ?? null;
-				} else {
-					record.citationKey = null;
-					record.bibliographyTitle = null;
+				if (metadata.success && metadata.descriptor.citationKey) {
+					record.citationKey = metadata.descriptor.citationKey;
 				}
-			} catch {
-				// Silently skip if lookup fails
-				record.citationKey = null;
-				record.bibliographyTitle = null;
+				// If no match found, keep empty string
+			} catch (error) {
+				// Lookup failed - keep empty string
 			}
 		}
 	}
