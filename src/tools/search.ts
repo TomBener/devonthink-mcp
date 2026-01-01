@@ -313,13 +313,13 @@ const search = async (input: SearchInput): Promise<SearchResult> => {
 	// Always enrich results with citation keys from Zotero bibliography
 	if (result.success && result.results) {
 		const hasConfig = process.env.BIBLIOGRAPHY_JSON || process.env.BIBLIOGRAPHY_BIB;
-		
+
 		for (const record of result.results) {
 			if (!hasConfig) {
 				// Skip lookup if no config - leave as empty string
 				continue;
 			}
-			
+
 			try {
 				const metadata = await lookupBibliographyMetadataByPath(record.path);
 				if (metadata.success && metadata.descriptor.citationKey) {
